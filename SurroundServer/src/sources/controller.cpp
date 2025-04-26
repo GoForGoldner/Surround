@@ -55,29 +55,14 @@ void sendBoard(std::vector<ENetPeer*> clients,
   }
 }
 
-void sendWaitingMessage(std::vector<ENetPeer*> clients, int players) {
-  // Construct the message
-  std::stringstream str;
-  str << "Players: " << clients.size() << "/" << players;
-  std::string s = str.str();
-  std::cout << s << std::endl;
-
+void sendUpdates(std::vector<ENetPeer*> clients, std::string message,
+                 std::string tag) {
+  std::string out = tag + message;
   // Create the packet
-  ENetPacket* packet =
-      enet_packet_create(s.c_str(), s.size() + 1, ENET_PACKET_FLAG_RELIABLE);
-
-  // Send the packet to each client
-  for (ENetPeer* client : clients) {
-    if (client != nullptr) {  // Ensure the client pointer is valid
-      enet_peer_send(client, 0, packet);
-    }     
-  }
-}
-
-void sendUpdates(std::vector<ENetPeer*> clients, std::string message) {
-  // Create the packet
-  ENetPacket* packet = enet_packet_create(message.c_str(), message.size() + 1,
+  ENetPacket* packet = enet_packet_create(out.c_str(), out.size() + 1,
                                           ENET_PACKET_FLAG_RELIABLE);
+
+  std::cout << out << std::endl;
 
   // Send the packet to each client
   for (ENetPeer* client : clients) {
@@ -85,6 +70,15 @@ void sendUpdates(std::vector<ENetPeer*> clients, std::string message) {
       enet_peer_send(client, 0, packet);
     }
   }
+}
+
+void sendWaitingMessage(std::vector<ENetPeer*> clients, int players) {
+  // Construct the message
+  std::stringstream str;
+  str << "Players: " << clients.size() << "/" << players;
+  std::string out = str.str();
+
+  sendUpdates(clients, out, "1");
 }
 
 ENetHost* initializeServer(const char* serverAddresss, int port,
@@ -172,27 +166,26 @@ void handleServerEvents(Model& model, ENetHost* server,
 
 void Controller::begin() {
   int players = 1;
-
   ENetHost* server = initializeServer("192.168.1.23", 7777, players);
-
-  // From each event from the clients
   std::vector<ENetPeer*> clients;
 
+  sf::Clock clock;
   while (true) {
     handleServerEvents(m_model, server, clients);
 
     if (clients.size() == players) {
-      sf::sleep(sf::milliseconds(500));
-      std::string updates = m_model.updatePlayers();
-
-      // send the model again to all the clients.
-      sendUpdates(clients, updates);
+      if (clock.getElapsedTime().asMilliseconds() >= 125) {
+        std::cout << "playing game" << std::endl;
+        std::string updates = m_model.updatePlayers();
+        sendUpdates(clients, updates, "2");
+        clock.restart();
+      }
     } else {
-      sf::sleep(sf::milliseconds(1000));
-      sendWaitingMessage(clients, players);
+      if (clock.getElapsedTime().asMilliseconds() >= 500) {
+        sendWaitingMessage(clients, players);
+        clock.restart();
+      }
     }
   }
-
-  // Clean up server resources
   enet_host_destroy(server);
 }

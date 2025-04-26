@@ -2,16 +2,20 @@
 
 #include <iostream>
 
+#include "controller.h"
 #include "text.h"
+#include "view.h"
 
-void Menu::processEvents(const sf::Event& event, sf::RenderWindow& window, View& view) {
+void Menu::processViewEvents(const sf::Event& event, sf::RenderWindow& window,
+                             View& view, Controller& controller) {
   // Play button
-  if (text::isMouseClickInRegion(event,window, 0.0f, 0.0f, 0.5f, 0.5f)) {
+  if (text::isMouseClickInRegion(event, window, 0.0f, 0.0f, 0.5f, 0.5f)) {
     view.changeMode(View::Mode::WAITING_ROOM);
+    controller.initEnet();
   }
 
   // Exit button
-  if (text::isMouseClickInRegion(event,window, 0.0f, 0.0f, 0.0f, 0.0f)) {
+  if (text::isMouseClickInRegion(event, window, 0.0f, 0.0f, 0.0f, 0.0f)) {
   }
 }
 
@@ -36,3 +40,5 @@ void Menu::display(sf::RenderWindow& window) {
   // Display the frame
   window.display();
 }
+
+void Menu::processServerEvents(const char* packet) {}

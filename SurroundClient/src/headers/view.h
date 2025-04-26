@@ -6,23 +6,32 @@
 #include <vector>
 #include <enet/enet.h>
 
+#include "game.h"
+#include "menu.h"
+#include "waitingRoom.h"
+
 class Controller;  // Forward declaration of Controller
 
 class View {
  public:
   enum Mode { MENU, WAITING_ROOM, GAME };
 
-  View(int numberOfPlayers);
-  void displayBoard(const std::vector<std::vector<enet_uint32>>& board);
-  bool isOpen() const;
-  void processEvents(Controller& controller);
+  View(Menu& menu, WaitingRoom& waitingRoom, Game& game);
+  
   void changeMode(Mode mode);
-  void display(const char* waitingMessage);
+  void display();
+  bool isOpen() const;
   void close();
+  
+  void processEvents(Controller& controller);
+  
 
  private:
   std::unordered_map<enet_uint32, sf::Color> m_idToColor;
-  sf::Vector2u m_windowSize;
   sf::RenderWindow m_window;
   Mode m_currentMode;
+
+  Menu& m_menu;
+  WaitingRoom& m_waitingRoom;
+  Game& m_game;
 };

@@ -1,9 +1,15 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "view.h"
+
+class View;        // Forward declaration
+class Controller;  // Forward declaration
 
 class ViewWindow {
-  virtual void processEvents(const sf::Event& event, sf::RenderWindow& window,
-                        View& view) = 0;
+ public:
+  virtual void processViewEvents(const sf::Event& event,
+                                 sf::RenderWindow& window, View& view,
+                                 Controller& controller) = 0;
   virtual void display(sf::RenderWindow& window) = 0;
+
+  virtual void processServerEvents(const char* packet) = 0;
 };

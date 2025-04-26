@@ -1,14 +1,14 @@
 #include "playerInfo.h"
 
-// TODO remove
 #include <iostream>
-#include <random> // For random number generation
+#include <random>  // For random number generation
 
 PlayerInfo::PlayerInfo(const enet_uint32 id,
                        std::vector<std::vector<enet_uint32>>& arr)
     : mId(id),
       mPlayerState(PlayerState::PLAYING),
       mNode(sf::Vector2i(0, 0)),
+      m_arrSize(arr.size()),
       mArr(arr) {
   std::random_device rd;
   std::mt19937 gen(rd());
@@ -25,12 +25,14 @@ PlayerInfo::PlayerInfo(const enet_uint32 id,
   mNode = sf::Vector2i(randomX, randomY);
 }
 
-PlayerState PlayerInfo::updatePlayer(Direction direction, size_t arrSize, std::string& str) {
-  mArr[mNode.y][mNode.x] = mId;
+PlayerState PlayerInfo::updatePlayer(Direction direction, std::string& str) {
+  std::string s = std::to_string(mId) + " " + std::to_string(mNode.x);
+  s += " " + std::to_string(mNode.y) + "\n";
   
-  str = mId + " " + mNode.x;
-  str += " " + mNode.y + '\n';
-  std::cout << str << std::endl;
+  std::cout << s << std::endl;
+  str = s;
+
+  mArr[mNode.y][mNode.x] = mId;
 
   switch (direction) {
     case UP:
@@ -41,7 +43,7 @@ PlayerState PlayerInfo::updatePlayer(Direction direction, size_t arrSize, std::s
       }
       break;
     case DOWN:
-      if (mNode.y + 1 >= arrSize || mArr[mNode.y + 1][mNode.x] != -1) {
+      if (mNode.y + 1 >= m_arrSize || mArr[mNode.y + 1][mNode.x] != -1) {
         mPlayerState = PlayerState::LOST;
       } else {
         ++mNode.y;
@@ -55,7 +57,7 @@ PlayerState PlayerInfo::updatePlayer(Direction direction, size_t arrSize, std::s
       }
       break;
     case RIGHT:
-      if (mNode.x + 1 >= arrSize || mArr[mNode.y][mNode.x + 1] != -1) {
+      if (mNode.x + 1 >= m_arrSize || mArr[mNode.y][mNode.x + 1] != -1) {
         mPlayerState = PlayerState::LOST;
       } else {
         ++mNode.x;

@@ -29,14 +29,14 @@ add_executable(main
     src/headers/model.h
     src/headers/view.h
     src/headers/menu.h
-    src/headers/text.h
+    
     src/headers/viewWindow.h
     src/headers/waitingRoom.h
     src/headers/game.h
     src/headers/controller.h
     src/headers/player.h
     src/headers/playerInfo.h
-    src/sources/text.cpp
+    src/headers/text.h
     src/sources/main.cpp
     src/sources/model.cpp
     src/sources/view.cpp
@@ -46,6 +46,7 @@ add_executable(main
     src/sources/controller.cpp
     src/sources/player.cpp
     src/sources/playerInfo.cpp
+    src/sources/text.cpp
 )
 
 file(COPY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})

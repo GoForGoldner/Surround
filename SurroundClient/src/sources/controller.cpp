@@ -1,68 +1,11 @@
 #include "controller.h"
-#include "view.h"
+
 #include <iostream>
-#include <sstream>
 
-Controller::Controller(Model& model, View& view)
-    : m_view(view),
-      m_model(model),
-      m_client(nullptr),
-      m_server(nullptr),
-      m_waitingMessage("") {}
+#include "game.h"
+#include "view.h"
 
-void Controller::sendDirection(ENetPeer* peer, Direction direciton) {
-  int directionValue = static_cast<int>(direciton);
-  ENetPacket* packet = enet_packet_create(
-      &directionValue, sizeof(directionValue), ENET_PACKET_FLAG_RELIABLE);
-
-  if (enet_peer_send(peer, 0, packet) < 0) {
-    std::cerr << "Failed to send direction packet." << std::endl;
-    enet_packet_destroy(packet);  // Clean up if sending fails
-  } else {
-    std::cout << "Sent direction " << static_cast<int>(direciton) << std::endl;
-  }
-}
-
-//TODO fix
-void Controller::processWaitingRoom() {
-
-}
-
-void Controller::processGameUpdates(const char* data) {
-  std::stringstream ss(data);
-  std::string line;
-
-  while (std::getline(ss, line)) {
-    std::stringstream lineStream(line);
-    enet_uint32 id;
-    int x,y;
-
-    if (lineStream >> id >> x >> y) {
-      m_model.updatePlayer(id, x, y);
-    } else {
-      std::cerr << "Error parsing line: " << line << std::endl;
-    }
-  }
-}
-
-// Process a received ENet packet containing a serialized vector
-void Controller::processPacket(const ENetPacket* packet) {
-  std::string str = std::string((char*)packet->data, packet->dataLength);
-
-  // Waiting Packet:
-  if (str.find("Players") != std::string::npos) {
-    m_waitingMessage = str;
-    std::cout << m_waitingMessage << std::endl;
-  } else { // Game Packet
-    m_view.changeMode(View::Mode::GAME);
-    const char* data = (char*) packet->data;
-    size_t dataLength = packet->dataLength;
-
-    processGameUpdates((char*)packet->data);
-    std::cout << "Board Updated." << std::endl;
-    m_view.displayBoard(m_model.getBoard());
-  }
-}
+// HELPER FUNCTIONS
 
 ENetHost* initializeClient(int port) {
   if (enet_initialize() != 0) {
@@ -129,6 +72,29 @@ void disconnectENet(ENetHost* client, ENetPeer* server) {
   enet_host_destroy(client);  // Properly destroy the client host
 }
 
+// CONTROLLER FUNCTIONS
+
+Controller::Controller(View& view, Menu& menu, WaitingRoom& waitingRoom,
+                       Game& game)
+    : m_view(view),
+      m_client(nullptr),
+      m_server(nullptr),
+      m_menu(menu),
+      m_waitingRoom(waitingRoom),
+      m_game(game) {}
+
+void Controller::sendDirection(Direction direciton) {
+  int directionValue = static_cast<int>(direciton);
+  ENetPacket* packet =
+      enet_packet_create(&directionValue, sizeof(directionValue), 0);
+  if (enet_peer_send(m_server, 0, packet) < 0) {
+    std::cerr << "Failed to send direction packet." << std::endl;
+    enet_packet_destroy(packet);  // Clean up if sending fails
+  } else {
+    std::cout << "Sent direction " << static_cast<int>(direciton) << std::endl;
+  }
+}
+
 static bool init = false;
 void Controller::initEnet() {
   if (init) return;
@@ -153,16 +119,38 @@ void Controller::processServer() {
   }
 }
 
+// Process a received ENet packet containing a serialized vector
+void Controller::processPacket(const ENetPacket* packet) {
+  char firstLetter = ((char*)packet->data)[0];
+
+  std::cout << "Tag: " << firstLetter << std::endl;
+  std::cout << "Data: " << (char*)packet->data + 1 << std::endl;
+
+  switch (firstLetter) {
+    case '1':
+      m_waitingRoom.processServerEvents((char*)packet->data + 1);
+      break;
+    case '2':
+      m_view.changeMode(View::Mode::GAME);
+      m_game.processServerEvents((char*)packet->data + 1);
+      break;
+    default:
+      break;
+  }
+}
+
 void Controller::begin() {
   Direction currentDirection = Direction::DOWN;
+  std::cout << "Client connection successful!" << std::endl;
 
   // GAME LOOP START
-  int count = 0;
 
-  while (m_view.isOpen()) {  // TODO change later
+  while (m_view.isOpen()) {
     m_view.processEvents(*this);
-    m_view.display(m_waitingMessage.c_str());
+    if (init) processServer();
+    m_view.display();
   }
+
   // GAME LOOP END
 
   // disconnectENet(client, server);

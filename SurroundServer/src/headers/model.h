@@ -29,7 +29,7 @@ class Model {
  private:
   const size_t mArraySize;
   std::vector<std::vector<enet_uint32>> mArr;
-  std::unordered_map<int, std::unique_ptr<PlayerInfo>> mIdMap;
+  std::unordered_map<enet_uint32, std::unique_ptr<PlayerInfo>> mIdMap;
   std::vector<std::pair<enet_uint32, Direction>> mActivePlayers;
 };
 

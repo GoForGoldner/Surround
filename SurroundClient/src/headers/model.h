@@ -1,11 +1,11 @@
 #pragma once
 #ifndef MODEL_H
 #define MODEL_H
-
-#include "enet/enet.h"
 #include <vector>
 
 #include "playerInfo.h"
+
+typedef uint32_t enet_uint32;
 
 class Model {
  public:

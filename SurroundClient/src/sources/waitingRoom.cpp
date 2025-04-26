@@ -1,15 +1,17 @@
 #include "waitingRoom.h"
+#include "view.h"
+#include "controller.h"
 
 #include "iostream"
 #include "text.h"
 
-void WaitingRoom::processEvents(const sf::Event& event,
-                                sf::RenderWindow& window, View& view) {}
+WaitingRoom::WaitingRoom() : m_waitingMessage("") {}
 
-static sf::Clock clocker;
+void WaitingRoom::processViewEvents(const sf::Event& event,
+                                    sf::RenderWindow& window, View& view,
+                                    Controller& controller) {}
 
-void WaitingRoom::display(sf::RenderWindow& window,
-                          const char* waitingMessage) {
+void WaitingRoom::display(sf::RenderWindow& window) {
   window.clear();  // Load the font
 
   sf::Font newYearGoo = text::loadFont(
@@ -21,12 +23,18 @@ void WaitingRoom::display(sf::RenderWindow& window,
   text::displayText("Waiting...", newYearGoo, 100, 0.2f, 0.05f, 0.0f,
                     sf::Color::Black, window);
 
-  text::displayText(waitingMessage, newYearGoo, 45, 0.22f, 0.18f,
-                    0.0f, sf::Color::Black, window);
+  text::displayText(m_waitingMessage, newYearGoo, 45, 0.22f, 0.18f, 0.0f,
+                    sf::Color::Black, window);
 
   // Display the frame
   window.display();
 }
+
+void WaitingRoom::processServerEvents(const char* packet) {
+  m_waitingMessage = std::string(packet, strlen(packet));
+}
+
+// static sf::Clock clocker;
 
 //// Load the shader
 // sf::Shader shader;

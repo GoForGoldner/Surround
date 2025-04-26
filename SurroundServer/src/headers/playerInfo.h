@@ -2,10 +2,11 @@
 #ifndef PLAYERINFO_H
 #define PLAYERINFO_H
 
+#include <enet/enet.h>
+
 #include <SFML/System/Vector2.hpp>
 #include <vector>
 
-#include <enet/enet.h>
 #include "player.h"
 
 enum PlayerState { PLAYING, LOST };
@@ -15,8 +16,7 @@ class PlayerInfo {
  public:
   PlayerInfo(const enet_uint32 id, std::vector<std::vector<enet_uint32>>& arr);
 
-  PlayerState PlayerInfo::updatePlayer(Direction direction, size_t arrSize,
-                                       std::string& str);
+  PlayerState PlayerInfo::updatePlayer(Direction direction, std::string& str);
 
   int getId() const;
   PlayerState getState() const;
@@ -27,6 +27,7 @@ class PlayerInfo {
   PlayerState mPlayerState;
   sf::Vector2i mNode;
   std::vector<std::vector<enet_uint32>>& mArr;
+  size_t m_arrSize;
 };
 
 #endif  // PLAYERINFO_H
